@@ -1,94 +1,92 @@
 #include "shell.h"
 
 /**
- * **strtow - splits a string into words. Repeat delimiters are ignored
- * @str: the input string
+ * **strtow - splits a string into words. Repeat delimiters
  * @d: the delimeter string
  * Return: a pointer to an array of strings, or NULL on failure
  */
 
 char **strtow(char *str, char *d)
 {
-	int i, j, k, m, numwords = 0;
-	char **s;
+	int a, b, g, n, nwords = 0;
+	char **c;
 
 	if (str == NULL || str[0] == 0)
 		return (NULL);
 	if (!d)
 		d = " ";
-	for (i = 0; str[i] != '\0'; i++)
-		if (!is_delim(str[i], d) && (is_delim(str[i + 1], d) || !str[i + 1]))
-			numwords++;
+	for (a = 0; str[a] != '\0'; a++)
+		if (!is_delim(str[a], d) && (is_delim(str[a + 1], d) || !str[a + 1]))
+			nwords++;
 
-	if (numwords == 0)
+	if (nwords == 0)
 		return (NULL);
-	s = malloc((1 + numwords) * sizeof(char *));
-	if (!s)
+	c = malloc((1 + nwords) * sizeof(char *));
+	if (!c)
 		return (NULL);
-	for (i = 0, j = 0; j < numwords; j++)
+	for (a = 0, b = 0; b < nwords; b++)
 	{
-		while (is_delim(str[i], d))
-			i++;
-		k = 0;
-		while (!is_delim(str[i + k], d) && str[i + k])
-			k++;
-		s[j] = malloc((k + 1) * sizeof(char));
-		if (!s[j])
+		while (is_delim(str[a], d))
+			a++;
+		g = 0;
+		while (!is_delim(str[a + g], d) && str[a + g])
+			g++;
+		c[b] = malloc((g + 1) * sizeof(char));
+		if (!c[b])
 		{
-			for (k = 0; k < j; k++)
-				free(s[k]);
-			free(s);
+			for (g = 0; g < b; g++)
+				free(c[g]);
+			free(c);
 			return (NULL);
 		}
-		for (m = 0; m < k; m++)
-			s[j][m] = str[i++];
-		s[j][m] = 0;
+		for (n = 0; n < g; n++)
+			c[b][n] = str[a++];
+		c[b][n] = 0;
 	}
-	s[j] = NULL;
-	return (s);
+	c[b] = NULL;
+	return (c);
 }
 
 /**
  * **strtow2 - splits a string into words
- * @str: the input string
  * @d: the delimeter
  * Return: a pointer to an array of strings, or NULL on failure
  */
 char **strtow2(char *str, char d)
 {
-	int i, j, k, m, numwords = 0;
-	char **s;
+	int a, b, g, n, nwords = 0;
+	char **c;
 
 	if (str == NULL || str[0] == 0)
 		return (NULL);
-	for (i = 0; str[i] != '\0'; i++)
-		if ((str[i] != d && str[i + 1] == d) ||
-				    (str[i] != d && !str[i + 1]) || str[i + 1] == d)
-			numwords++;
-	if (numwords == 0)
+	for (a = 0; str[a] != '\0'; a++)
+		if ((str[a] != d && str[a + 1] == d) ||
+				(str[a] != d && !str[a + 1]) || str[a + 1] == d)
+			nwords++;
+	if (nwords == 0)
 		return (NULL);
-	s = malloc((1 + numwords) * sizeof(char *));
-	if (!s)
+	c = malloc((1 + nwords) * sizeof(char *));
+	if (!c)
 		return (NULL);
-	for (i = 0, j = 0; j < numwords; j++)
+	for (a = 0, b = 0; b < nwords; b++)
 	{
-		while (str[i] == d && str[i] != d)
-			i++;
-		k = 0;
-		while (str[i + k] != d && str[i + k] && str[i + k] != d)
-			k++;
-		s[j] = malloc((k + 1) * sizeof(char));
-		if (!s[j])
+		while (str[a] == d && str[a] != d)
+			a++;
+		g = 0;
+		while (str[a + g] != d && str[a + g] && str[a + g] != d)
+			g++;
+		c[b] = malloc((g + 1) * sizeof(char));
+		if (!c[b])
 		{
-			for (k = 0; k < j; k++)
-				free(s[k]);
-			free(s);
+			for (g = 0; g < b; g++)
+				free(c[g]);
+			free(c);
 			return (NULL);
 		}
-		for (m = 0; m < k; m++)
-			s[j][m] = str[i++];
-		s[j][m] = 0;
+		for (n = 0; n < g; n++)
+			c[b][n] = str[a++];
+		c[b][n] = 0;
 	}
-	s[j] = NULL;
-	return (s);
+	c[b] = NULL;
+	return (c);
 }

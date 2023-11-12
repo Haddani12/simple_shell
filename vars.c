@@ -1,139 +1,133 @@
 #include "shell.h"
 
 /**
- * is_chain - test if current char in buffer is a chain delimeter
- * @info: the parameter struct
- * @buf: the char buffer
- * @p: address of current position in buf
+ * is_chain - test if current char in buffer is a chain delimete
+ * @buffer
+ * @q: address of current position in buf
  *
  * Return: 1 if chain delimeter, 0 otherwise
  */
-int is_chain(info_t *info, char *buf, size_t *p)
+int is_chain(info_t *info, char *buffer, size_t *q)
 {
-	size_t j = *p;
+	size_t i = *q;
 
-	if (buf[j] == '|' && buf[j + 1] == '|')
+	if (buffer[i] == '|' && buffer[i + 1] == '|')
 	{
-		buf[j] = 0;
-		j++;
+		buffer[i] = 0;
+		i++;
 		info->cmd_buf_type = CMD_OR;
 	}
-	else if (buf[j] == '&' && buf[j + 1] == '&')
+	else if (buffer[i] == '&' && buffer[i + 1] == '&')
 	{
-		buf[j] = 0;
-		j++;
+		buffer[i] = 0;
+		i++;
 		info->cmd_buf_type = CMD_AND;
 	}
-	else if (buf[j] == ';') /* found end of this command */
+	else if (buffer[i] == ';')
 	{
-		buf[j] = 0; /* replace semicolon with null */
+		buffer[i] = 0;
 		info->cmd_buf_type = CMD_CHAIN;
 	}
 	else
 		return (0);
-	*p = j;
+	*q = i;
 	return (1);
 }
 
 /**
  * check_chain - checks we should continue chaining based on last status
- * @info: the parameter struct
- * @buf: the char buffer
- * @p: address of current position in buf
- * @i: starting position in buf
+ * @buffer
+ * @q: address of current position in buf
+ * @a: starting position in buffer
  * @len: length of buf
  *
  * Return: Void
  */
-void check_chain(info_t *info, char *buf, size_t *p, size_t i, size_t len)
+void check_chain(info_t *info, char *buffer, size_t *q, size_t a, size_t len)
 {
-	size_t j = *p;
+	size_t i = *q;
 
-	if (info->cmd_buf_type == CMD_AND)
+	if (info->cmd_buffer_type == CMD_AND)
 	{
 		if (info->status)
 		{
-			buf[i] = 0;
-			j = len;
+			buffer[a] = 0;
+			i = len;
 		}
 	}
-	if (info->cmd_buf_type == CMD_OR)
+	if (info->cmd_buffer_type == CMD_OR)
 	{
 		if (!info->status)
 		{
-			buf[i] = 0;
-			j = len;
+			buffer[a] = 0;
+			i = len;
 		}
 	}
 
-	*p = j;
+	*q = i;
 }
 
 /**
  * replace_alias - replaces an aliases in the tokenized string
- * @info: the parameter struct
- *
  * Return: 1 if replaced, 0 otherwise
  */
 int replace_alias(info_t *info)
 {
-	int i;
+	int j;
 	list_t *node;
-	char *p;
+	char *q;
 
-	for (i = 0; i < 10; i++)
+	for (j = 0; j < 10; j++)
 	{
 		node = node_starts_with(info->alias, info->argv[0], '=');
 		if (!node)
 			return (0);
 		free(info->argv[0]);
-		p = _strchr(node->str, '=');
-		if (!p)
+		q = _strchr(node->str, '=');
+		if (!q)
 			return (0);
-		p = _strdup(p + 1);
-		if (!p)
+		q = _strdup(q + 1);
+		if (!q)
 			return (0);
-		info->argv[0] = p;
+		info->argv[0] = q;
 	}
 	return (1);
 }
 
 /**
  * replace_vars - replaces vars in the tokenized string
- * @info: the parameter struct
- *
  * Return: 1 if replaced, 0 otherwise
  */
 int replace_vars(info_t *info)
 {
-	int i = 0;
+	int j = 0;
 	list_t *node;
 
-	for (i = 0; info->argv[i]; i++)
+	for (j = 0; info->argv[j]; j++)
 	{
-		if (info->argv[i][0] != '$' || !info->argv[i][1])
+		if (info->argv[j][0] != '$' || !info->argv[j][1])
 			continue;
 
-		if (!_strcmp(info->argv[i], "$?"))
+		if (!_strcmp(info->argv[j], "$?"))
 		{
-			replace_string(&(info->argv[i]),
+			replace_string(&(info->argv[j]),
 					_strdup(convert_number(info->status, 10, 0)));
 			continue;
 		}
-		if (!_strcmp(info->argv[i], "$$"))
+		if (!_strcmp(info->argv[j], "$$"))
 		{
-			replace_string(&(info->argv[i]),
+			replace_string(&(info->argv[j]),
 					_strdup(convert_number(getpid(), 10, 0)));
 			continue;
 		}
-		node = node_starts_with(info->env, &info->argv[i][1], '=');
+		node = node_starts_with(info->env, &info->argv[j][1], '=');
 		if (node)
 		{
-			replace_string(&(info->argv[i]),
+			replace_string(&(info->argv[j]),
 					_strdup(_strchr(node->str, '=') + 1));
 			continue;
 		}
-		replace_string(&info->argv[i], _strdup(""));
+		replace_string(&info->argv[j], _strdup(""));
 
 	}
 	return (0);
@@ -168,40 +162,33 @@ int replace_string(char **old, char *new)
 
 #include "shell.h"
 
-/**
- * interactive - returns true if shell is interactive mode
- * @info: struct address
- *
- * Return: 1 if interactive mode, 0 otherwise
- */
 int interactive(info_t *info)
 {
 	return (isatty(STDIN_FILENO) && info->readfd <= 2);
 }
 
 /**
- * is_delim - checks if character is a delimeter
- * @c: the char to check
- * @delim: the delimeter string
+ * @d: the char to check
+ * @delimeter: the delimeter string
  * Return: 1 if true, 0 if false
  */
-int is_delim(char c, char *delim)
+int is_delim(char d, char *delimeter)
 {
-	while (*delim)
-		if (*delim++ == c)
+	while (*delimeter)
+		if (*delimeter++ == d)
 			return (1);
 	return (0);
 }
 
 /**
  * _isalpha - checks for alphabetic character
- * @c: The character to input
+ * @d: The character to input
  * Return: 1 if c is alphabetic, 0 otherwise
  */
 
-int _isalpha(int c)
+int _isalpha(int d)
 {
-	if ((c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'))
+	if ((d >= 'a' && d <= 'z') || (d >= 'A' && d <= 'Z'))
 		return (1);
 	else
 		return (0);
@@ -209,34 +196,34 @@ int _isalpha(int c)
 
 /**
  * _atoi - converts a string to an integer
- * @s: the string to be converted
+ * @d: the string to be converted
  * Return: 0 if no numbers in string, converted number otherwise
  */
 
-int _atoi(char *s)
+int _atoi(char *d)
 {
-	int i, sign = 1, flag = 0, output;
-	unsigned int result = 0;
+	int j, sign = 1, flag = 0, output;
+	unsigned int reslt = 0;
 
-	for (i = 0; s[i] != '\0' && flag != 2; i++)
+	for (j = 0; d[j] != '\0' && flag != 2; j++)
 	{
-		if (s[i] == '-')
+		if (d[j] == '-')
 			sign *= -1;
 
-		if (s[i] >= '0' && s[i] <= '9')
+		if (d[j] >= '0' && d[j] <= '9')
 		{
 			flag = 1;
-			result *= 10;
-			result += (s[i] - '0');
+			reslt *= 10;
+			reslt += (d[j] - '0');
 		}
 		else if (flag == 1)
 			flag = 2;
 	}
 
 	if (sign == -1)
-		output = -result;
+		output = -reslt;
 	else
-		output = result;
+		output = reslt;
 
 	return (output);
 }

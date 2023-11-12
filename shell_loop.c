@@ -2,28 +2,25 @@
 
 /**
  * hsh - main shell loop
- * @info: the parameter & return info struct
- * @av: the argument vector from main()
- *
  * Return: 0 on success, 1 on error, or error code
  */
 int hsh(info_t *info, char **av)
 {
-	ssize_t r = 0;
-	int builtin_ret = 0;
+	ssize_t s = 0;
+	int built = 0;
 
-	while (r != -1 && builtin_ret != -2)
+	while (s != -1 && built != -2)
 	{
 		clear_info(info);
 		if (interactive(info))
 			_puts("$ ");
 		_eputchar(BUF_FLUSH);
-		r = get_input(info);
-		if (r != -1)
+		s = get_input(info);
+		if (s != -1)
 		{
 			set_info(info, av);
-			builtin_ret = find_builtin(info);
-			if (builtin_ret == -1)
+			built = find_builtin(info);
+			if (built == -1)
 				find_cmd(info);
 		}
 		else if (interactive(info))
@@ -34,19 +31,17 @@ int hsh(info_t *info, char **av)
 	free_info(info, 1);
 	if (!interactive(info) && info->status)
 		exit(info->status);
-	if (builtin_ret == -2)
+	if (built == -2)
 	{
 		if (info->err_num == -1)
 			exit(info->status);
 		exit(info->err_num);
 	}
-	return (builtin_ret);
+	return (built);
 }
 
 /**
  * find_builtin - finds a builtin command
- * @info: the parameter & return info struct
- *
  * Return: -1 if builtin not found,
  * 	0 if builtin executed successfully,
  * 	1 if builtin found but not successful,
@@ -54,7 +49,7 @@ int hsh(info_t *info, char **av)
  */
 int find_builtin(info_t *info)
 {
-	int i, built_in_ret = -1;
+	int j, built = -1;
 	builtin_table builtintbl[] = {
 		{"exit", _myexit},
 		{"env", _myenv},
@@ -67,43 +62,41 @@ int find_builtin(info_t *info)
 		{NULL, NULL}
 	};
 
-	for (i = 0; builtintbl[i].type; i++)
-		if (_strcmp(info->argv[0], builtintbl[i].type) == 0)
+	for (j = 0; builtintbl[j].type; j++)
+		if (_strcmp(info->argv[0], builtintbl[j].type) == 0)
 		{
 			info->line_count++;
-			built_in_ret = builtintbl[i].func(info);
+			built = builtintbl[i].func(info);
 			break;
 		}
-	return (built_in_ret);
+	return (built);
 }
 
 /**
  * find_cmd - finds a command in PATH
- * @info: the parameter & return info struct
- *
  * Return: void
  */
 void find_cmd(info_t *info)
 {
-	char *path = NULL;
-	int i, k;
+	char *pat = NULL;
+	int j, g;
 
-	info->path = info->argv[0];
+	info->pat = info->argv[0];
 	if (info->linecount_flag == 1)
 	{
 		info->line_count++;
 		info->linecount_flag = 0;
 	}
-	for (i = 0, k = 0; info->arg[i]; i++)
-		if (!is_delim(info->arg[i], " \t\n"))
-			k++;
-	if (!k)
+	for (j = 0, g = 0; info->arg[j]; j++)
+		if (!is_delim(info->arg[j], " \t\n"))
+			g++;
+	if (!g)
 		return;
 
-	path = find_path(info, _getenv(info, "PATH="), info->argv[0]);
-	if (path)
+	pat = find_path(info, _getenv(info, "PATH="), info->argv[0]);
+	if (pat)
 	{
-		info->path = path;
+		info->pat = pat;
 		fork_cmd(info);
 	}
 	else
@@ -121,8 +114,6 @@ void find_cmd(info_t *info)
 
 /**
  * fork_cmd - forks a an exec thread to run cmd
- * @info: the parameter & return info struct
- *
  * Return: void
  */
 void fork_cmd(info_t *info)
@@ -132,8 +123,7 @@ void fork_cmd(info_t *info)
 	child_pid = fork();
 	if (child_pid == -1)
 	{
-		/* TODO: PUT ERROR FUNCTION */
-		perror("Error:");
+		perror("Error: ");
 		return;
 	}
 	if (child_pid == 0)
@@ -145,7 +135,6 @@ void fork_cmd(info_t *info)
 				exit(126);
 			exit(1);
 		}
-		/* TODO: PUT ERROR FUNCTION */
 	}
 	else
 	{
@@ -154,7 +143,7 @@ void fork_cmd(info_t *info)
 		{
 			info->status = WEXITSTATUS(info->status);
 			if (info->status == 126)
-				print_error(info, "Permission denied\n");
+				print_error(info, "Per denied\n");
 		}
 	}
 }
